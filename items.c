@@ -173,7 +173,11 @@ item *do_item_alloc_pull(const size_t ntotal, const unsigned int id) {
         if (!settings.lru_segmented) {
             lru_pull_tail(id, COLD_LRU, 0, 0, 0, NULL);
         }
-        it = slabs_alloc(id, 0);
+        //it = slabs_alloc(id, 0);
+        it = malloc(ntotal);
+        if (it != NULL) {
+            it->refcount = 1; /* slabs_alloc() used to seed this; malloc() doesn't zero memory */
+        }
 
         if (it == NULL) {
             // We send '0' in for "total_bytes" as this routine is always
@@ -355,9 +359,10 @@ void item_free(item *it) {
     assert(it->refcount == 0);
 
     /* so slab size changer can tell later if item is already free or not */
-    clsid = ITEM_clsid(it);
-    DEBUG_REFCNT(it, 'F');
-    slabs_free(it, clsid);
+    //clsid = ITEM_clsid(it);
+    //DEBUG_REFCNT(it, 'F');
+    //slabs_free(it, clsid);
+    free(it);
 }
 
 /**
